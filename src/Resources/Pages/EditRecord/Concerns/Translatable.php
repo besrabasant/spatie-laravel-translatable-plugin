@@ -22,7 +22,7 @@ trait Translatable
         $data = $this->record->toArray();
 
         foreach (static::getResource()::getTranslatableAttributes() as $attribute) {
-            $data[$attribute] = $this->record->getTranslation($attribute, $this->activeFormLocale);
+            $data[$attribute] = $this->record->getTranslation($attribute, $this->activeFormLocale, false);
         }
 
         $this->form->fill($data);
@@ -38,7 +38,14 @@ trait Translatable
         $resourceLocales = $resource::getTranslatableLocales();
         $defaultLocale = $resource::getDefaultTranslatableLocale();
 
-        $this->activeFormLocale = in_array($defaultLocale, $availableLocales) ? $defaultLocale : array_intersect($availableLocales, $resourceLocales)[0] ?? $defaultLocale;
+        if(in_array($defaultLocale, $availableLocales)) {
+            $this->activeFormLocale = $defaultLocale;
+        } elseif (in_array('0', $intersectedResourceLocales = array_intersect($availableLocales, $resourceLocales))) {
+            $this->activeFormLocale = $intersectedResourceLocales[0];
+        } else {
+            $this->activeFormLocale = app()->getLocale();
+        }
+
         $this->record->setLocale($this->activeFormLocale);
     }
 
